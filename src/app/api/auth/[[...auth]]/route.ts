@@ -9,23 +9,29 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ auth
   const url = new URL(req.url)
   const origin = url.origin
 
-  if (path === '' || path === 'login' || (path === 'auth' && url.searchParams.get('type') === 'login')) {
-    if (!CLIENT_ID) {
-      return new Response('GitHub OAuth not configured — set GITHUB_OAUTH_CLIENT_ID', { status: 500 })
-    }
-    const redirectUri = `${origin}/api/auth/callback`
+  if (!CLIENT_ID || !CLIENT_SECRET) {
+    return new Response(
+      'GitHub OAuth not configured. Set GITHUB_OAUTH_CLIENT_ID and GITHUB_OAUTH_CLIENT_SECRET.',
+      { status: 500 }
+    )
+  }
+
+  if (path === '' || path === 'login' || url.searchParams.get('type') === 'login') {
+    const callbackUrl = `${origin}/api/auth/callback`
     const githubUrl = new URL('https://github.com/login/oauth/authorize')
     githubUrl.searchParams.set('client_id', CLIENT_ID)
-    githubUrl.searchParams.set('redirect_uri', redirectUri)
+    githubUrl.searchParams.set('redirect_uri', callbackUrl)
     githubUrl.searchParams.set('scope', 'public_repo')
-    return NextResponse.redirect(githubUrl.toString())
+
+    return new Response(
+      `<!doctype html><html><body><script>window.location.href='${githubUrl}'</script></body></html>`,
+      { headers: { 'Content-Type': 'text/html' } }
+    )
   }
 
   if (path === 'callback') {
     const code = url.searchParams.get('code')
-    if (!code) {
-      return new Response('Missing authorization code', { status: 400 })
-    }
+    if (!code) return new Response('Missing code', { status: 400 })
 
     const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
       method: 'POST',
@@ -35,29 +41,27 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ auth
 
     const data = await tokenRes.json()
     const token = data.access_token
+    if (!token) return new Response(`Token error: ${JSON.stringify(data)}`, { status: 400 })
 
-    if (!token) {
-      return new Response(`Failed to get token: ${JSON.stringify(data)}`, { status: 400 })
-    }
-
-    return new Response(
-      `<!doctype html>
+    const html = `<!doctype html>
 <html><body>
 <script>
   (function() {
+    var token = ${JSON.stringify(token)};
+    var origin = ${JSON.stringify(origin)};
     function receiveMessage(e) {
       if (e.data === 'authorizing:github') {
-        window.opener.postMessage('authorization:github:success:${token}', '*')
-        window.close()
+        window.opener.postMessage('authorization:github:success:' + token, origin);
+        window.close();
       }
     }
-    window.addEventListener('message', receiveMessage, false)
-    window.opener.postMessage('authorizing:github', '*')
-  })()
-</script>
-</body></html>`,
-      { headers: { 'Content-Type': 'text/html' } }
-    )
+    window.addEventListener('message', receiveMessage, false);
+    window.opener.postMessage('authorizing:github', origin);
+  })();
+<\/script>
+</body></html>`
+
+    return new Response(html, { headers: { 'Content-Type': 'text/html' } })
   }
 
   if (path === 'logout') {
@@ -70,10 +74,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ auth
 export async function POST(req: NextRequest) {
   const url = new URL(req.url)
   const code = url.searchParams.get('code')
-
-  if (!code) {
-    return NextResponse.json({ error: 'no code' }, { status: 400 })
-  }
+  if (!code) return NextResponse.json({ error: 'no code' }, { status: 400 })
 
   const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
     method: 'POST',
@@ -82,10 +83,7 @@ export async function POST(req: NextRequest) {
   })
 
   const data = await tokenRes.json()
-
-  if (data.access_token) {
-    return NextResponse.json({ token: data.access_token })
-  }
+  if (data.access_token) return NextResponse.json({ token: data.access_token })
 
   return NextResponse.json({ error: 'failed to get token' }, { status: 400 })
 }
