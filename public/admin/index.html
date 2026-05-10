@@ -20,7 +20,6 @@
         auth_endpoint: 'api/auth',
         squash_merges: true,
       },
-      local_backend: true,
       media_folder: 'public/images',
       public_folder: '/images',
       slug: { encoding: 'ascii', clean_accents: true },
@@ -42,7 +41,7 @@
             { name: 'date', label: 'Date', widget: 'datetime', date_format: 'YYYY-MM-DD', time_format: false, picker_utc: true },
             { name: 'description', label: 'Description', widget: 'text' },
             { name: 'tags', label: 'Tags', widget: 'list', default: [], required: false },
-            { label: 'Body', name: 'body', widget: 'markdown', minimal: true, buttons: ['bold', 'italic', 'code', 'link', 'heading-three', 'quote', 'bulleted-list', 'numbered-list', 'code-block'] },
+            { label: 'Body', name: 'body', widget: 'markdown', minimal: true, buttons: ['bold', 'italic', 'code', 'link', 'heading-three', 'quote', 'bulleted-list', 'numbered-list'] },
           ],
         },
         {
