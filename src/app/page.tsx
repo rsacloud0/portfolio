@@ -1,65 +1,139 @@
-import Image from "next/image";
+import Link from 'next/link'
+import { ArrowDown, ArrowRight } from 'lucide-react'
+import StarField from '@/components/StarField'
+import ScrollReveal from '@/components/ScrollReveal'
+import Section from '@/components/Section'
+import ProjectCard from '@/components/ProjectCard'
+import PostPreview from '@/components/PostPreview'
+import { getAllProjects } from '@/lib/projects'
+import { getAllPosts } from '@/lib/posts'
 
 export default function Home() {
+  const projects = getAllProjects()
+  const posts = getAllPosts().slice(0, 3)
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <>
+      <StarField />
+
+      {/* Hero */}
+      <section className="relative flex min-h-screen flex-col items-center justify-center px-6">
+        <ScrollReveal className="text-center">
+          <p className="mb-4 text-sm font-medium text-accent">Hi, I&apos;m</p>
+          <h1 className="mb-4 bg-gradient-to-r from-foreground via-accent to-foreground bg-clip-text text-5xl font-bold tracking-tight text-transparent sm:text-6xl">
+            Rabia!
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mx-auto mb-8 max-w-md text-lg text-muted">
+            Computer Science undergrad passionate about building things for the web.
           </p>
+          <div className="flex items-center justify-center gap-4">
+            <Link
+              href="/projects"
+              className="rounded-full bg-accent px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
+            >
+              View Projects
+            </Link>
+            <Link
+              href="/blog"
+              className="rounded-full border border-card-border px-6 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-accent hover:text-accent"
+            >
+              Read Blog
+            </Link>
+          </div>
+        </ScrollReveal>
+
+        <div className="absolute bottom-10 animate-bounce">
+          <ArrowDown size={20} className="text-muted" />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      </section>
+
+      {/* About */}
+      <Section
+        id="about"
+        title="About Me"
+        subtitle="A quick introduction to who I am and what I do."
+        className="bg-background"
+      >
+        <ScrollReveal className="mx-auto max-w-2xl text-center" delay={0.1}>
+          <p className="leading-relaxed text-muted">
+            I&apos;m a Computer Science undergraduate with a passion for full-stack
+            development, system design, and creating polished user experiences.
+            This site is my corner of the internet where I share projects,
+            write about things I&apos;m learning, and document my journey.
+          </p>
+          <Link
+            href="/about"
+            className="mt-6 inline-flex items-center gap-1 text-sm text-accent transition-colors hover:text-accent-hover"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            More about me <ArrowRight size={14} />
+          </Link>
+        </ScrollReveal>
+      </Section>
+
+      {/* Projects */}
+      <Section
+        id="projects"
+        title="Featured Projects"
+        subtitle="Some things I've built recently."
+        className="border-t border-card-border bg-background"
+      >
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {projects.slice(0, 3).map((project, i) => (
+            <ScrollReveal key={project.title} delay={i * 0.1}>
+              <ProjectCard project={project} />
+            </ScrollReveal>
+          ))}
         </div>
-      </main>
-    </div>
-  );
+        <ScrollReveal className="mt-10 text-center" delay={0.3}>
+          <Link
+            href="/projects"
+            className="inline-flex items-center gap-1 text-sm text-accent transition-colors hover:text-accent-hover"
+          >
+            View all projects <ArrowRight size={14} />
+          </Link>
+        </ScrollReveal>
+      </Section>
+
+      {/* Blog */}
+      <Section
+        id="blog"
+        title="Latest Posts"
+        subtitle="Thoughts, tutorials, and updates."
+        className="border-t border-card-border bg-background"
+      >
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {posts.map((post, i) => (
+            <ScrollReveal key={post.slug} delay={i * 0.1}>
+              <PostPreview post={post} />
+            </ScrollReveal>
+          ))}
+        </div>
+        <ScrollReveal className="mt-10 text-center" delay={0.3}>
+          <Link
+            href="/blog"
+            className="inline-flex items-center gap-1 text-sm text-accent transition-colors hover:text-accent-hover"
+          >
+            Read all posts <ArrowRight size={14} />
+          </Link>
+        </ScrollReveal>
+      </Section>
+
+      {/* Contact */}
+      <Section
+        id="contact"
+        title="Get In Touch"
+        subtitle="I'm always open to new opportunities and conversations."
+        className="border-t border-card-border bg-background"
+      >
+        <ScrollReveal className="text-center" delay={0.1}>
+          <a
+            href="mailto:rabia.sosan.arian0@gmail.com"
+            className="inline-flex items-center gap-2 rounded-full bg-accent px-8 py-3 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
+          >
+            Say Hello
+          </a>
+        </ScrollReveal>
+      </Section>
+    </>
+  )
 }
