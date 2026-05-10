@@ -9,6 +9,62 @@
   </style>
 </head>
 <body>
-  <script src="https://unpkg.com/decap-cms@^3/dist/decap-cms.js"></script>
+  <script src="https://unpkg.com/decap-cms@^3/dist/decap-cms.js"
+          onload="CMS.init({
+    config: {
+      backend: {
+        name: 'github',
+        repo: 'rsacloud0/portfolio',
+        branch: 'main',
+        base_url: '/',
+        auth_endpoint: 'api/auth',
+        squash_merges: true,
+      },
+      local_backend: true,
+      media_folder: 'public/images',
+      public_folder: '/images',
+      slug: { encoding: 'ascii', clean_accents: true },
+      collections: [
+        {
+          name: 'blog',
+          label: 'Blog Posts',
+          label_singular: 'Post',
+          folder: 'src/content/blog',
+          create: true,
+          delete: true,
+          sortable_fields: ['date', 'title'],
+          default_sort: 'date',
+          extension: 'mdx',
+          format: 'frontmatter',
+          slug: '{{slug}}',
+          fields: [
+            { name: 'title', label: 'Title', widget: 'string' },
+            { name: 'date', label: 'Date', widget: 'datetime', date_format: 'YYYY-MM-DD', time_format: false, picker_utc: true },
+            { name: 'description', label: 'Description', widget: 'text' },
+            { name: 'tags', label: 'Tags', widget: 'list', default: [], required: false },
+            { label: 'Body', name: 'body', widget: 'markdown', minimal: true, buttons: ['bold', 'italic', 'code', 'link', 'heading-three', 'quote', 'bulleted-list', 'numbered-list', 'code-block'] },
+          ],
+        },
+        {
+          name: 'projects',
+          label: 'Projects',
+          label_singular: 'Project',
+          folder: 'src/content/projects',
+          create: true,
+          delete: true,
+          extension: 'mdx',
+          format: 'frontmatter',
+          slug: '{{slug}}',
+          fields: [
+            { name: 'title', label: 'Title', widget: 'string' },
+            { name: 'description', label: 'Description', widget: 'text' },
+            { name: 'tech', label: 'Technologies', widget: 'list', default: [] },
+            { name: 'github', label: 'GitHub URL', widget: 'string', required: false },
+            { name: 'live', label: 'Live URL', widget: 'string', required: false },
+          ],
+        },
+      ],
+    }
+  })"></script>
 </body>
 </html>
