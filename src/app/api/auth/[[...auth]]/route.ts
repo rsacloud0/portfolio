@@ -5,12 +5,12 @@ const CLIENT_SECRET = process.env.GITHUB_OAUTH_CLIENT_SECRET
 
 const ORIGIN = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
-export async function GET(req: NextRequest, { params }: { params: Promise<{ auth: string[] }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ auth?: string[] }> }) {
   const { auth } = await params
-  const path = auth.join('/')
+  const path = (auth ?? []).join('/')
   const url = new URL(req.url)
 
-  if (path === 'login' || (path === 'auth' && url.searchParams.get('type') === 'login')) {
+  if (path === '' || path === 'login' || (path === 'auth' && url.searchParams.get('type') === 'login')) {
     if (!CLIENT_ID) {
       return new Response('GitHub OAuth not configured — set GITHUB_OAUTH_CLIENT_ID', { status: 500 })
     }
