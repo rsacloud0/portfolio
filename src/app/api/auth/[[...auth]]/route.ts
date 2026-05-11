@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server'
 const CLIENT_ID = process.env.GITHUB_OAUTH_CLIENT_ID
 const CLIENT_SECRET = process.env.GITHUB_OAUTH_CLIENT_SECRET
 
+const AUTH_COOKIE = 'decap_cms_token'
+
 export async function GET(req: NextRequest, { params }: { params: Promise<{ auth?: string[] }> }) {
   const { auth } = await params
   const path = (auth ?? []).join('/')
@@ -16,7 +18,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ auth
     )
   }
 
-  if (path === '' || path === 'login' || url.searchParams.get('type') === 'login') {
+  if (path === '' || path === 'login') {
     const githubUrl = new URL('https://github.com/login/oauth/authorize')
     githubUrl.searchParams.set('client_id', CLIENT_ID)
     githubUrl.searchParams.set('scope', 'public_repo')
@@ -41,19 +43,18 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ auth
     const token = data.access_token
     if (!token) return new Response(`Token error: ${JSON.stringify(data)}`, { status: 400 })
 
-    return new Response(
-      `<!doctype html>
-<html><body>
-<script>
-  try { localStorage.setItem('decap_cms_token', JSON.stringify({ access_token: ${JSON.stringify(token)} })); } catch(e) {}
-  window.close();
-<\/script>
-</body></html>`,
-      { headers: { 'Content-Type': 'text/html' } }
-    )
+    // Set cookie and redirect to admin
+    const res = NextResponse.redirect(new URL('/admin', origin))
+    res.cookies.set(AUTH_COOKIE, token, { httpOnly: true, secure: true, sameSite: 'lax', path: '/' })
+    return res
   }
 
-  if (path === 'logout') return NextResponse.json({})
+  if (path === 'logout') {
+    const res = NextResponse.redirect(new URL('/admin', origin))
+    res.cookies.delete(AUTH_COOKIE)
+    return res
+  }
+
   return NextResponse.json({ error: 'unknown endpoint' }, { status: 404 })
 }
 

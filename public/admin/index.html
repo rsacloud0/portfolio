@@ -15,6 +15,7 @@
   <script src="https://unpkg.com/decap-cms@^3/dist/decap-cms.js"></script>
   <script>
     var CONFIG = {
+      load_config_file: false,
       backend: {
         name: "github",
         repo: "rsacloud0/portfolio",
@@ -68,70 +69,41 @@
       ],
     }
 
-    var AUTH_KEY = 'decap-cms-auth'
-    var POLL_KEY = 'decap_cms_token'
-    var pollTimer
-
-    function openLogin() {
-      // clear any stale token before opening popup
-      localStorage.removeItem(POLL_KEY)
-      var w = 600
-      var h = 700
-      var left = (screen.width - w) / 2
-      var top = (screen.height - h) / 2
-      window.open(
-        window.location.origin + '/api/auth',
-        'auth',
-        'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top
-      )
-    }
-
     function initCMS(token) {
       CONFIG.backend.token = token
       CMS.init({ config: CONFIG })
     }
 
-    function checkAuth() {
-      var stored = localStorage.getItem(AUTH_KEY)
-      if (stored) {
-        try {
-          var data = JSON.parse(stored)
-          if (data.access_token) {
-            initCMS(data.access_token)
-            return true
-          }
-        } catch (e) {}
-      }
-      return false
+    function getTokenFromCookie() {
+      var match = document.cookie.match(/(?:^|;\s*)decap_cms_token=([^;]*)/)
+      return match ? decodeURIComponent(match[1]) : null
     }
 
-    function startPolling() {
-      pollTimer = setInterval(function() {
-        var raw = localStorage.getItem(POLL_KEY)
-        if (!raw) return
-        try {
-          var data = JSON.parse(raw)
-          if (data && data.access_token) {
-            clearInterval(pollTimer)
-            localStorage.setItem(AUTH_KEY, JSON.stringify({ access_token: data.access_token }))
-            localStorage.removeItem(POLL_KEY)
-            window.location.reload()
-          }
-        } catch (e) {}
-      }, 500)
+    // Store cookie token in localStorage so Decap CMS can use it
+    var token = getTokenFromCookie()
+    if (token) {
+      try {
+        localStorage.setItem('decap-cms-auth', JSON.stringify({ access_token: token }))
+      } catch(e) {}
+      document.cookie = 'decap_cms_token=; path=/; max-age=0'  // clear cookie
     }
 
-    if (checkAuth()) {
-      // CMS initializing with stored token
+    var stored = localStorage.getItem('decap-cms-auth')
+    if (stored) {
+      try {
+        var data = JSON.parse(stored)
+        if (data.access_token) {
+          initCMS(data.access_token)
+        }
+      } catch(e) {}
     } else {
       document.body.innerHTML = [
         '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:20px;color:#e2e8f0">',
         '<h1 style="font-size:24px;font-weight:600;margin:0">Content Manager</h1>',
         '<p style="color:#94a3b8;margin:0">Log in with GitHub to manage your content.</p>',
-        '<button onclick="openLogin()" style="padding:12px 32px;background:#818cf8;color:white;border:none;border-radius:8px;font-size:15px;cursor:pointer">Login with GitHub</button>',
+        '<a href="/api/auth" style="padding:12px 32px;background:#818cf8;color:white;border:none;border-radius:8px;font-size:15px;cursor:pointer;text-decoration:none">Login with GitHub</a>',
         '</div>'
       ].join('')
-      startPolling()
     }
   </script>
 </body>
