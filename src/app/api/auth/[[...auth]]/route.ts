@@ -17,10 +17,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ auth
   }
 
   if (path === '' || path === 'login' || url.searchParams.get('type') === 'login') {
-    const callbackUrl = `${origin}/api/auth/callback`
     const githubUrl = new URL('https://github.com/login/oauth/authorize')
     githubUrl.searchParams.set('client_id', CLIENT_ID)
-    githubUrl.searchParams.set('redirect_uri', callbackUrl)
     githubUrl.searchParams.set('scope', 'public_repo')
 
     return new Response(
