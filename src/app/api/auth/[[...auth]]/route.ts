@@ -45,7 +45,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ auth
 
     // Set cookie and redirect to admin
     const res = NextResponse.redirect(new URL('/admin', origin))
-    res.cookies.set(AUTH_COOKIE, token, { httpOnly: true, secure: true, sameSite: 'lax', path: '/' })
+    res.cookies.set(AUTH_COOKIE, token, { secure: true, sameSite: 'lax', path: '/' })
     return res
   }
 
