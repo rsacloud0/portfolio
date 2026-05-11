@@ -69,8 +69,12 @@
     }
 
     var AUTH_KEY = 'decap-cms-auth'
+    var POLL_KEY = 'decap_cms_token'
+    var pollTimer
 
     function openLogin() {
+      // clear any stale token before opening popup
+      localStorage.removeItem(POLL_KEY)
       var w = 600
       var h = 700
       var left = (screen.width - w) / 2
@@ -101,6 +105,22 @@
       return false
     }
 
+    function startPolling() {
+      pollTimer = setInterval(function() {
+        var raw = localStorage.getItem(POLL_KEY)
+        if (!raw) return
+        try {
+          var data = JSON.parse(raw)
+          if (data && data.access_token) {
+            clearInterval(pollTimer)
+            localStorage.setItem(AUTH_KEY, JSON.stringify({ access_token: data.access_token }))
+            localStorage.removeItem(POLL_KEY)
+            window.location.reload()
+          }
+        } catch (e) {}
+      }, 500)
+    }
+
     if (checkAuth()) {
       // CMS initializing with stored token
     } else {
@@ -111,15 +131,8 @@
         '<button onclick="openLogin()" style="padding:12px 32px;background:#818cf8;color:white;border:none;border-radius:8px;font-size:15px;cursor:pointer">Login with GitHub</button>',
         '</div>'
       ].join('')
+      startPolling()
     }
-
-    window.addEventListener('message', function(e) {
-      var data = e.data
-      if (data && data.access_token) {
-        localStorage.setItem(AUTH_KEY, JSON.stringify({ access_token: data.access_token }))
-        window.location.reload()
-      }
-    })
   </script>
 </body>
 </html>

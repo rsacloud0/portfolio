@@ -45,7 +45,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ auth
       `<!doctype html>
 <html><body>
 <script>
-  window.opener.postMessage({ access_token: ${JSON.stringify(token)} }, '*');
+  try { localStorage.setItem('decap_cms_token', JSON.stringify({ access_token: ${JSON.stringify(token)} })); } catch(e) {}
   window.close();
 <\/script>
 </body></html>`,
