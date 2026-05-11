@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Content Manager</title>
   <style>
-    body { margin: 0; background: #080812; }
+    body { margin: 0; background: #080812; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
   </style>
 </head>
 <body>
@@ -14,65 +14,112 @@
   </script>
   <script src="https://unpkg.com/decap-cms@^3/dist/decap-cms.js"></script>
   <script>
-    var initCMS = function() {
-      if (!window.CMS) return void setTimeout(initCMS, 50)
-      CMS.init({
-        config: {
-          backend: {
-            name: "github",
-            repo: "rsacloud0/portfolio",
-            branch: "main",
-            base_url: window.location.origin,
-            auth_endpoint: "api/auth",
-            squash_merges: true,
-          },
-          media_folder: "public/images",
-          public_folder: "/images",
-          slug: { encoding: "ascii", clean_accents: true },
-          collections: [
-            {
-              name: "blog",
-              label: "Blog Posts",
-              label_singular: "Post",
-              folder: "src/content/blog",
-              create: true,
-              delete: true,
-              sortable_fields: ["date", "title"],
-              default_sort: "date",
-              extension: "mdx",
-              format: "frontmatter",
-              slug: "{{slug}}",
-              fields: [
-                { name: "title", label: "Title", widget: "string" },
-                { name: "date", label: "Date", widget: "datetime", date_format: "YYYY-MM-DD", time_format: false, picker_utc: true },
-                { name: "description", label: "Description", widget: "text" },
-                { name: "tags", label: "Tags", widget: "list", default: [], required: false },
-                { label: "Body", name: "body", widget: "markdown", minimal: true, buttons: ["bold", "italic", "code", "link", "heading-three", "quote", "bulleted-list", "numbered-list"] },
-              ],
-            },
-            {
-              name: "projects",
-              label: "Projects",
-              label_singular: "Project",
-              folder: "src/content/projects",
-              create: true,
-              delete: true,
-              extension: "mdx",
-              format: "frontmatter",
-              slug: "{{slug}}",
-              fields: [
-                { name: "title", label: "Title", widget: "string" },
-                { name: "description", label: "Description", widget: "text" },
-                { name: "tech", label: "Technologies", widget: "list", default: [] },
-                { name: "github", label: "GitHub URL", widget: "string", required: false },
-                { name: "live", label: "Live URL", widget: "string", required: false },
-              ],
-            },
+    var CONFIG = {
+      backend: {
+        name: "github",
+        repo: "rsacloud0/portfolio",
+        branch: "main",
+        base_url: window.location.origin,
+        auth_endpoint: "api/auth",
+        squash_merges: true,
+      },
+      media_folder: "public/images",
+      public_folder: "/images",
+      slug: { encoding: "ascii", clean_accents: true },
+      collections: [
+        {
+          name: "blog",
+          label: "Blog Posts",
+          label_singular: "Post",
+          folder: "src/content/blog",
+          create: true,
+          delete: true,
+          sortable_fields: ["date", "title"],
+          default_sort: "date",
+          extension: "mdx",
+          format: "frontmatter",
+          slug: "{{slug}}",
+          fields: [
+            { name: "title", label: "Title", widget: "string" },
+            { name: "date", label: "Date", widget: "datetime", date_format: "YYYY-MM-DD", time_format: false, picker_utc: true },
+            { name: "description", label: "Description", widget: "text" },
+            { name: "tags", label: "Tags", widget: "list", default: [], required: false },
+            { label: "Body", name: "body", widget: "markdown", minimal: true, buttons: ["bold", "italic", "code", "link", "heading-three", "quote", "bulleted-list", "numbered-list"] },
           ],
         },
-      })
+        {
+          name: "projects",
+          label: "Projects",
+          label_singular: "Project",
+          folder: "src/content/projects",
+          create: true,
+          delete: true,
+          extension: "mdx",
+          format: "frontmatter",
+          slug: "{{slug}}",
+          fields: [
+            { name: "title", label: "Title", widget: "string" },
+            { name: "description", label: "Description", widget: "text" },
+            { name: "tech", label: "Technologies", widget: "list", default: [] },
+            { name: "github", label: "GitHub URL", widget: "string", required: false },
+            { name: "live", label: "Live URL", widget: "string", required: false },
+          ],
+        },
+      ],
     }
-    initCMS()
+
+    var AUTH_KEY = 'decap-cms-auth'
+
+    function openLogin() {
+      var w = 600
+      var h = 700
+      var left = (screen.width - w) / 2
+      var top = (screen.height - h) / 2
+      window.open(
+        window.location.origin + '/api/auth',
+        'auth',
+        'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top
+      )
+    }
+
+    function initCMS(token) {
+      CONFIG.backend.token = token
+      CMS.init({ config: CONFIG })
+    }
+
+    function checkAuth() {
+      var stored = localStorage.getItem(AUTH_KEY)
+      if (stored) {
+        try {
+          var data = JSON.parse(stored)
+          if (data.access_token) {
+            initCMS(data.access_token)
+            return true
+          }
+        } catch (e) {}
+      }
+      return false
+    }
+
+    if (checkAuth()) {
+      // CMS initializing with stored token
+    } else {
+      document.body.innerHTML = [
+        '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:20px;color:#e2e8f0">',
+        '<h1 style="font-size:24px;font-weight:600;margin:0">Content Manager</h1>',
+        '<p style="color:#94a3b8;margin:0">Log in with GitHub to manage your content.</p>',
+        '<button onclick="openLogin()" style="padding:12px 32px;background:#818cf8;color:white;border:none;border-radius:8px;font-size:15px;cursor:pointer">Login with GitHub</button>',
+        '</div>'
+      ].join('')
+    }
+
+    window.addEventListener('message', function(e) {
+      var data = e.data
+      if (data && data.access_token) {
+        localStorage.setItem(AUTH_KEY, JSON.stringify({ access_token: data.access_token }))
+        window.location.reload()
+      }
+    })
   </script>
 </body>
 </html>

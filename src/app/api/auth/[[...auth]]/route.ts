@@ -41,31 +41,19 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ auth
     const token = data.access_token
     if (!token) return new Response(`Token error: ${JSON.stringify(data)}`, { status: 400 })
 
-    const html = `<!doctype html>
+    return new Response(
+      `<!doctype html>
 <html><body>
 <script>
-  (function() {
-    var token = ${JSON.stringify(token)};
-    var origin = ${JSON.stringify(origin)};
-    function receiveMessage(e) {
-      if (e.data === 'authorizing:github') {
-        window.opener.postMessage('authorization:github:success:' + token, origin);
-        window.close();
-      }
-    }
-    window.addEventListener('message', receiveMessage, false);
-    window.opener.postMessage('authorizing:github', origin);
-  })();
+  window.opener.postMessage({ access_token: ${JSON.stringify(token)} }, '*');
+  window.close();
 <\/script>
-</body></html>`
-
-    return new Response(html, { headers: { 'Content-Type': 'text/html' } })
+</body></html>`,
+      { headers: { 'Content-Type': 'text/html' } }
+    )
   }
 
-  if (path === 'logout') {
-    return NextResponse.json({})
-  }
-
+  if (path === 'logout') return NextResponse.json({})
   return NextResponse.json({ error: 'unknown endpoint' }, { status: 404 })
 }
 
@@ -82,6 +70,5 @@ export async function POST(req: NextRequest) {
 
   const data = await tokenRes.json()
   if (data.access_token) return NextResponse.json({ token: data.access_token })
-
   return NextResponse.json({ error: 'failed to get token' }, { status: 400 })
 }
