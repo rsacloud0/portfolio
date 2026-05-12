@@ -3,8 +3,6 @@ import { NextRequest, NextResponse } from 'next/server'
 const CLIENT_ID = process.env.GITHUB_OAUTH_CLIENT_ID
 const CLIENT_SECRET = process.env.GITHUB_OAUTH_CLIENT_SECRET
 
-const AUTH_COOKIE = 'decap_cms_token'
-
 export async function GET(req: NextRequest, { params }: { params: Promise<{ auth?: string[] }> }) {
   const { auth } = await params
   const path = (auth ?? []).join('/')
@@ -18,7 +16,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ auth
     )
   }
 
-  if (path === '' || path === 'login') {
+  if (path === '' || path === 'login' || url.searchParams.get('type') === 'login') {
     const githubUrl = new URL('https://github.com/login/oauth/authorize')
     githubUrl.searchParams.set('client_id', CLIENT_ID)
     githubUrl.searchParams.set('scope', 'public_repo')
@@ -43,18 +41,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ auth
     const token = data.access_token
     if (!token) return new Response(`Token error: ${JSON.stringify(data)}`, { status: 400 })
 
-    // Set cookie and redirect to admin
-    const res = NextResponse.redirect(new URL('/admin', origin))
-    res.cookies.set(AUTH_COOKIE, token, { secure: true, sameSite: 'lax', path: '/' })
-    return res
+    // Redirect back to admin page with token in hash.
+    // Decap CMS's implicit grant handler polls the popup's location.hash
+    // and extracts the token when it navigates back to the same origin.
+    return NextResponse.redirect(new URL(`/admin#access_token=${token}`, origin))
   }
 
-  if (path === 'logout') {
-    const res = NextResponse.redirect(new URL('/admin', origin))
-    res.cookies.delete(AUTH_COOKIE)
-    return res
-  }
-
+  if (path === 'logout') return NextResponse.json({})
   return NextResponse.json({ error: 'unknown endpoint' }, { status: 404 })
 }
 
