@@ -4,30 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Content Admin</title>
+    <!-- Load Decap CMS -->
     <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
   </head>
   <body>
-    <!-- Decap CMS will mount here -->
+    <!-- REQUIRED: Decap CMS mounts here -->
     <div id="nc-root"></div>
-    <script>
-      // Wait for DOM to be ready before initializing
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initCMS);
-      } else {
-        initCMS();
-      }
-
-      function initCMS() {
-        try {
-          if (typeof CMS !== 'undefined' && document.getElementById('nc-root')) {
-            CMS.init({ config: '/admin/config_v2.yml' });
-          } else {
-            console.error('Decap CMS not available or mount element missing.');
-          }
-        } catch (err) {
-          console.error('Error initializing Decap CMS:', err);
-        }
-      }
-    </script>
   </body>
 </html>
