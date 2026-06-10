@@ -8,7 +8,28 @@
     <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
   </head>
   <body>
-    <!-- REQUIRED: Decap CMS mounts here -->
+    <!-- REQUIRED: This is the container Decap CMS mounts to -->
     <div id="nc-root"></div>
+    
+    <script>
+      // Wait for DOM to be ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initCMS);
+      } else {
+        initCMS();
+      }
+
+      function initCMS() {
+        // Check if CMS is loaded and root exists
+        const root = document.getElementById('nc-root');
+        if (typeof CMS !== 'undefined' && root) {
+          CMS.init({
+            config_url: '/admin/config.yml'
+          });
+        } else {
+          console.error('Decap CMS not available or mount element missing.');
+        }
+      }
+    </script>
   </body>
 </html>
