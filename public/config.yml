@@ -3,7 +3,7 @@ backend:
   repo: rsacloud0/portfolio
   branch: main
   base_url: https://rsa-portfolio.vercel.app
-  auth_endpoint: api/auth
+  auth_endpoint: https://decap-cms-oauth-plum.vercel.app/api/auth
   squash_merges: true
 
 media_folder: public/images
