@@ -9,4 +9,18 @@
   <body>
     <!-- Decap CMS will mount here automatically -->
     <script>
-      // Wait for DOM to be ready before init
+      // Wait for DOM to be ready before initializing
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initCMS);
+      } else {
+        initCMS();
+      }
+
+      function initCMS() {
+        if (typeof CMS !== 'undefined') {
+          CMS.init();
+        }
+      }
+    </script>
+  </body>
+</html>
